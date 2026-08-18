@@ -15,15 +15,18 @@ type Props = {
   title: string;
 };
 
-// Calcula la duración real del video para que la composición
-// dure exactamente lo mismo que el archivo importado.
+// Calcula la duración y las dimensiones reales del video para que la
+// composición coincida con el archivo importado (sirve tanto para
+// videos horizontales como verticales, p. ej. grabados con celular).
 const calculateMetadata: CalculateMetadataFunction<Props> = async () => {
-  const { durationInSeconds } = await getVideoMetadata(
+  const { durationInSeconds, width, height } = await getVideoMetadata(
     staticFile(VIDEO_FILE_NAME),
   );
 
   return {
     durationInFrames: Math.floor(durationInSeconds * 30),
+    width,
+    height,
   };
 };
 
@@ -63,7 +66,7 @@ export const VideoExample = () => {
     <Composition
       id="VideoExample"
       component={VideoWithTitle}
-      // durationInFrames se sobreescribe en calculateMetadata
+      // durationInFrames, width y height se sobreescriben en calculateMetadata
       // una vez que se lee el archivo real de public/sample-video.mp4
       durationInFrames={150}
       fps={30}
