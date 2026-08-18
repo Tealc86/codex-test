@@ -6,7 +6,7 @@ import {
   Sequence,
   staticFile,
 } from "remotion";
-import { getVideoMetadata } from "@remotion/media-utils";
+import { parseMedia } from "@remotion/media-parser";
 
 // Nombre del archivo que debés colocar en la carpeta `public/`.
 const VIDEO_FILE_NAME = "sample-video.mp4";
@@ -18,15 +18,23 @@ type Props = {
 // Calcula la duración y las dimensiones reales del video para que la
 // composición coincida con el archivo importado (sirve tanto para
 // videos horizontales como verticales, p. ej. grabados con celular).
+// Usamos @remotion/media-parser en vez de getVideoMetadata porque este
+// último depende de que el navegador pueda decodificar el códec (falla
+// con algunos H.264/HEVC), mientras que media-parser lee el contenedor
+// directamente sin necesitar decodificarlo.
 const calculateMetadata: CalculateMetadataFunction<Props> = async () => {
-  const { durationInSeconds, width, height } = await getVideoMetadata(
-    staticFile(VIDEO_FILE_NAME),
-  );
+  const { durationInSeconds, dimensions } = await parseMedia({
+    src: staticFile(VIDEO_FILE_NAME),
+    fields: {
+      durationInSeconds: true,
+      dimensions: true,
+    },
+  });
 
   return {
-    durationInFrames: Math.floor(durationInSeconds * 30),
-    width,
-    height,
+    durationInFrames: Math.floor((durationInSeconds ?? 5) * 30),
+    width: dimensions?.width,
+    height: dimensions?.height,
   };
 };
 
